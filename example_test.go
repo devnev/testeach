@@ -1,4 +1,4 @@
-package testup_test
+package testeach_test
 
 import (
 	"io/ioutil"
@@ -6,16 +6,58 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/devnev/testup"
+	. "github.com/devnev/testeach"
 )
 
-// testOsStat emulates what a Test function for os.Stat might look like when using testup.Suite.
+func testNoCases(t *testing.T) {
+	Start(t, func(t *testing.T) {
+		// No cases are registered, so this is run just once. Equivalent to not
+		// using Start at all.
+	})
+}
+
+func testTwoCases(t *testing.T) {
+	Start(t, func(t *testing.T) {
+		// Code here is run once on its own, and once for each Case below
+		t.Log("I am run three times")
+		defer t.Log("I am run three times, after any cases")
+
+		Case(t, "first case", func() {
+			t.Log("I am run once, after setup and before teardown")
+		})
+
+		Case(t, "second case", func() {
+			t.Log("I am also run once")
+		})
+	})
+}
+
+func testNestedCases(t *testing.T) {
+	Start(t, func(t *testing.T) {
+		// Code here is run once on its own, once for the outer case, and once
+		// with both the outer and inner cases.
+		t.Log("I am run three times")
+		defer t.Log("I am run three times, after any cases")
+
+		Case(t, "outer case", func() {
+			// Code here is run once without the inner case, and once with the
+			// inner case.
+			t.Log("I am run twice")
+
+			Case(t, "inner case", func() {
+				t.Log("I am run once")
+			})
+		})
+	})
+}
+
+// testOsStat emulates what a Test function for os.Stat might look like when using testeach.Suite.
 func testOsStat(t *testing.T) {
-	// The entire callback to testup.Suite is run three times: once as a prelude, and once for every
+	// The entire callback to testeach.Suite is run three times: once as a prelude, and once for every
 	// callback to test. Any setup and teardown that should be executed once for the entire suite
-	// should be placed before the call to testup.Suite.
-	testup.Suite(t, func(t *testing.T, test testup.Register) {
-		test("of a directory", func() {
+	// should be placed before the call to testeach.Suite.
+	Start(t, func(t *testing.T) {
+		Case(t, "of a directory", func() {
 			// This setup and teardown code is re-executed in each of the three runs.
 			dir, err := ioutil.TempDir(".", "test")
 			if err != nil {
@@ -34,7 +76,7 @@ func testOsStat(t *testing.T) {
 			// in isolation.
 
 			// In the second run, only this callback is executed
-			test("dir is a directory", func() {
+			Case(t, "dir is a directory", func() {
 				fi, err := os.Stat(dir)
 				if err != nil {
 					t.Fatalf("unexpected error from stat: %s", err)
@@ -44,7 +86,7 @@ func testOsStat(t *testing.T) {
 				}
 			})
 			// In the third run, only this callback is executed
-			test("dir contains created file", func() {
+			Case(t, "dir contains created file", func() {
 				// We can safely mutate resource used in other test cases as each case is started
 				// with a fresh setup
 				err := ioutil.WriteFile(filepath.Join(dir, "testfile"), []byte("data"), 0644)
@@ -61,7 +103,7 @@ func testOsStat(t *testing.T) {
 			})
 		})
 
-		test("of a file", func() {
+		Case(t, "of a file", func() {
 			// This setup and teardown code is executed twice, once without the sub-test and once
 			// with the sub-test.
 			file, err := ioutil.TempFile(".", "test")
@@ -75,7 +117,7 @@ func testOsStat(t *testing.T) {
 				}
 			}()
 
-			test("reports not a directory", func() {
+			Case(t, "reports not a directory", func() {
 				fi, err := os.Stat(file.Name())
 				if err != nil {
 					t.Fatalf("unexpected error from stat: %v", err)
@@ -88,6 +130,6 @@ func testOsStat(t *testing.T) {
 	})
 }
 
-func ExampleSuite() {
-	// See testOsStat
+func Example() {
+	// See above
 }

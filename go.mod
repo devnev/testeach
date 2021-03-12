@@ -1,3 +1,3 @@
-module github.com/devnev/testup
+module github.com/devnev/testeach
 
 go 1.13

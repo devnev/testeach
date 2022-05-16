@@ -20,17 +20,21 @@ import (
 // See testeach docs on how cases are run.
 func Case(tp **testing.T, name string, impl func()) {
 	initialT := *tp
-	loaded, _ := internal.ActiveTests.Load(initialT)
-	registerCb, _ := loaded.(func(string, func()))
-	if registerCb == nil {
-		internal.RunTargetAndRecurse(initialT, []*internal.StackFrame{}, func(t *testing.T) {
-			*tp = t
-			defer func() {
-				*tp = initialT
-			}()
-			impl()
-		})
+	defer func() {
+		*tp = initialT
+	}()
+
+	caseCallback := internal.LoadCaseCallback(initialT)
+	if caseCallback != nil {
+		caseCallback(name, impl)
 		return
 	}
-	registerCb(name, impl)
+
+	runSuite := func(newT *testing.T) {
+		*tp = newT
+		impl()
+	}
+	initialT.Run(name, func(t *testing.T) {
+		internal.NewTarget(t, runSuite).Run()
+	})
 }

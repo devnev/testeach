@@ -11,25 +11,26 @@
 package testeach
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/devnev/testeach/internal"
 )
 
-// Start allows nested registering of test cases with Case.
-// See testeach docs on how cases are run.
-func Start(t *testing.T, suite func(t *testing.T)) {
-	internal.RunTargetAndRecurse(t, []*internal.StackFrame{}, suite)
-}
-
 // Case registers a child case within Start or a parent Case.
 // See testeach docs on how cases are run.
-func Case(t *testing.T, name string, impl func()) {
-	loaded, _ := internal.ActiveTests.Load(t)
+func Case(tp **testing.T, name string, impl func()) {
+	initialT := *tp
+	loaded, _ := internal.ActiveTests.Load(initialT)
 	registerCb, _ := loaded.(func(string, func()))
 	if registerCb == nil {
-		panic(fmt.Sprintf("attempted to register case %q for terminated test %q", name, t.Name()))
+		internal.RunTargetAndRecurse(initialT, []*internal.StackFrame{}, func(t *testing.T) {
+			*tp = t
+			defer func() {
+				*tp = initialT
+			}()
+			impl()
+		})
+		return
 	}
 	registerCb(name, impl)
 }

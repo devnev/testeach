@@ -31,7 +31,7 @@ func TestMyType(t *testing.T) {
     // In Go 1.14+, harness may use t.Cleanup, making this defer unnecessary.
     defer harness.Destroy()
 
-    Case(&t, "with state", func(t *testing.T) {
+    Case(&t, "with state", func() {
         // Test setup goes here (equivalent to SetupTest/TeardownTest functions in suite frameworks)
         stuff := setupState(t)
         defer func() {

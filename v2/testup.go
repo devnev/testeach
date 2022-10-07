@@ -13,7 +13,7 @@ package testeach
 import (
 	"testing"
 
-	internal "github.com/devnev/testeach/v2/x"
+	internal "github.com/devnev/testeach/v3/x"
 )
 
 // Case registers a child case within Start or a parent Case.

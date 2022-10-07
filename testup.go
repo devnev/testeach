@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"testing"
 
-	internal "github.com/devnev/testeach/v2/x"
+	internal "github.com/devnev/testeach/v3/x"
 )
 
 // Start allows nested registering of test cases with Case.

@@ -30,11 +30,15 @@ type Target struct {
 }
 
 func (t *Target) Run() {
+	t.T.Helper()
+
 	names := t.RunSelf()
 	t.RunChildren(names)
 }
 
 func (t *Target) RunSelf() []string {
+	t.T.Helper()
+
 	state := NewRun(t)
 
 	activeTests.Store(t.T, state.Case)
@@ -46,6 +50,8 @@ func (t *Target) RunSelf() []string {
 }
 
 func (t *Target) RunChildren(names []string) {
+	t.T.Helper()
+
 	if len(names) == 0 {
 		return
 	}

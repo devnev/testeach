@@ -20,6 +20,8 @@ import (
 // See testeach docs on how cases are run.
 func Case(tp **testing.T, name string, impl func()) {
 	initialT := *tp
+	initialT.Helper()
+
 	defer func() {
 		*tp = initialT
 	}()
@@ -31,10 +33,14 @@ func Case(tp **testing.T, name string, impl func()) {
 	}
 
 	runSuite := func(newT *testing.T) {
+		newT.Helper()
+
 		*tp = newT
 		impl()
 	}
 	initialT.Run(name, func(t *testing.T) {
+		t.Helper()
+
 		internal.NewTarget(t, runSuite).Run()
 	})
 }
